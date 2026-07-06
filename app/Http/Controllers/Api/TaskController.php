@@ -20,15 +20,17 @@ class TaskController extends Controller
         $this->taskService = $taskService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $task = $this->taskService->getAllTasks();
+        $projectId = $request->query('project_id');
+
+        $tasks = $this->taskService->getAllTasks($projectId);
 
         return response()->json([
             "status" => true,
             "message" => "Data berhasil ditampilkan",
-            "data" => $task
-        ], 201);
+            "data" => $tasks
+        ], 200);
     }
 
     public function store(StoreTaskRequest $request): JsonResponse

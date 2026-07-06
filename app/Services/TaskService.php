@@ -7,10 +7,16 @@ use Illuminate\Database\Eloquent\Collection;
 
 class TaskService
 {
-    public function getAllTasks(): Collection
+    public function getAllTasks(?int $projectId = null): Collection
     {
-        return Task::where('user_id', auth()->user()->id)->get();
+        $query = Task::where('user_id', auth()->id());
 
+        // Jika React mengirimkan project_id, filter datanya berdasarkan project tersebut
+        if ($projectId) {
+            $query->where('project_id', $projectId);
+        }
+
+        return $query->latest()->get();
     }
 
     public function createTask(array $data): Task
