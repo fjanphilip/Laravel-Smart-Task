@@ -25,7 +25,12 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
+
             $token = $user->createToken('auth_token')->plainTextToken;
+
+            $user->remember_token = $token;
+
+            $user->save();
 
             return response()->json([
                 'success' => true,
@@ -64,9 +69,11 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        $user = Auth::user();
 
         $request->user()->currentAccessToken()->delete();
-
+        $user->remember_token = null;
+        $user->save();
         return response()->json([
             'success' => true,
             'message' => 'Logout berhasil, token telah dihapus.'

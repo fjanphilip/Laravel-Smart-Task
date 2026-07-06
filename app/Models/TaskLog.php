@@ -9,4 +9,19 @@ class TaskLog extends Model
 {
     /** @use HasFactory<\Database\Factories\TaskLogFactory> */
     use HasFactory;
+    protected $fillable = [
+        'task_id',
+        'user_id',
+        'action_taken'
+    ];
+
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

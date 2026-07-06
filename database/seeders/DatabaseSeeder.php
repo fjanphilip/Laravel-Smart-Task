@@ -61,12 +61,21 @@ class DatabaseSeeder extends Seeder
             $taskIds[] = $task->id;
         }
 
-        // 5. Masukkan aturan utama ke tabel task_automations
+        // 1. Aturan Berantai (Ganti action_type menjadi 'unlock_task')
         TaskAutomation::create([
             'project_id' => $project->id,
             'trigger_status' => 'done',
-            'action_type' => 'unlock_sequential',
+            'action_type' => 'unlock_task', // <-- Menggunakan enum kamu
             'action_value' => json_encode($taskIds),
+            'is_active' => true
+        ]);
+
+        // 2. Aturan Oper ke Manager (Ganti action_type menjadi 'change_assignee')
+        TaskAutomation::create([
+            'project_id' => $project->id,
+            'trigger_status' => 'review',  // <-- Menggunakan enum kamu
+            'action_type' => 'change_assignee', // <-- Menggunakan enum kamu
+            'action_value' => 'manager',
             'is_active' => true
         ]);
     }

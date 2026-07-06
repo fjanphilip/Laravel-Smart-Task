@@ -31,6 +31,8 @@ class TaskService
 
         $task->update($data);
 
+        // $task->refresh();
+
         return $task;
     }
 

@@ -50,4 +50,9 @@ class Task extends Model
             'dependency_id'       // Kolom foreign key tugas syarat
         );
     }
+
+    public function taskLog()
+    {
+        return $this->hasMany(TaskLog::class);
+    }
 }
