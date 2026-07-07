@@ -52,10 +52,10 @@ class SocialiteController extends Controller
         ]);
 
         // Otomatis assign role default: 'developer'
-        if (!$user->role) {
-            $user->role = 'developer';
-            $user->save();
-        }
+        // if (!$user->role) {
+        //     $user->role = 'developer';
+        //     $user->save();
+        // }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
