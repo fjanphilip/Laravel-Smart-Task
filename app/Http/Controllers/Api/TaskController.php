@@ -46,7 +46,11 @@ class TaskController extends Controller
 
     public function update(Task $task, UpdateTaskRequest $request): JsonResponse
     {
-        if ($task->user_id !== auth()->id()) {
+        $project = $task->project;
+        $isOwner = $project && $project->user_id === auth()->id();
+        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
             return response()->json([
                 "status" => false,
                 "message" => "Anda tidak memiliki akses untuk mengubah ini"
@@ -64,7 +68,11 @@ class TaskController extends Controller
 
     public function show(Task $task): JsonResponse
     {
-        if ($task->user_id !== auth()->id()) {
+        $project = $task->project;
+        $isOwner = $project && $project->user_id === auth()->id();
+        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
             return response()->json([
                 "status" => false,
                 "message" => "Anda tidak memiliki akses untuk melihat ini"
@@ -82,7 +90,11 @@ class TaskController extends Controller
 
     public function destroy(Task $task): JsonResponse
     {
-        if ($task->user_id !== auth()->id()) {
+        $project = $task->project;
+        $isOwner = $project && $project->user_id === auth()->id();
+        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
             return response()->json([
                 "status" => false,
                 "message" => "Anda tidak memiliki akses untuk menghapus ini"

@@ -91,4 +91,56 @@ class AuthController extends Controller
             'data' => $user
         ], 200);
     }
+
+    public function users(): JsonResponse
+    {
+        $users = User::all();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data users berhasil diambil',
+            'data' => $users
+        ], 200);
+    }
+
+    public function updateUser(Request $request, User $user): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:6',
+            'role' => 'required|in:developer,manager,admin'
+        ]);
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'data' => $user
+        ], 200);
+    }
+
+    public function deleteUser(User $user): JsonResponse
+    {
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak bisa menghapus akun Anda sendiri yang sedang aktif.'
+            ], 400);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil dihapus.'
+        ], 200);
+    }
 }

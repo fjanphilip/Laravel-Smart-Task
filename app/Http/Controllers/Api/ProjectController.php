@@ -44,7 +44,10 @@ class ProjectController extends Controller
 
     public function show(Project $project): JsonResponse
     {
-        if ($project->user_id !== auth()->id()) {
+        $isOwner = $project->user_id === auth()->id();
+        $isMember = $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki akses untuk melihat project ini'
@@ -60,7 +63,10 @@ class ProjectController extends Controller
 
     public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
-        if ($project->user_id !== auth()->id()) {
+        $isOwner = $project->user_id === auth()->id();
+        $isMember = $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki akses untuk mengedit project ini'
@@ -78,10 +84,13 @@ class ProjectController extends Controller
 
     public function destroy(Project $project): JsonResponse
     {
-        if ($project->user_id !== auth()->id()) {
+        $isOwner = $project->user_id === auth()->id();
+        $isMember = $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki akses untuk mengedit project ini'
+                'message' => 'Anda tidak memiliki akses untuk menghapus project ini'
             ], 403);
         }
 

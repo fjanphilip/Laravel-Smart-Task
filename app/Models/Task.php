@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Task extends Model
 {
@@ -19,6 +20,7 @@ class Task extends Model
         'due_date',
         'estimate_hours',
         'assigned_to',
+        'depends_on_task_id',
     ];
 
     public function project()
@@ -54,5 +56,15 @@ class Task extends Model
     public function taskLog()
     {
         return $this->hasMany(TaskLog::class);
+    }
+
+    public function precedent(): BelongsTo
+    {
+        return $this->belongsTo(Task::class, 'depends_on_task_id');
+    }
+
+    public function subsequentTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'depends_on_task_id');
     }
 }
