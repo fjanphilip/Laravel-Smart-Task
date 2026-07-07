@@ -14,19 +14,29 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. BUAT DATA USER TERLEBIH DAHULU (Agar ID 1 tersedia untuk Project dan Task)
-        $user = User::create([
-            'name' => 'Developer CostumeRent',
-            'email' => 'developer@costumerent.com',
-            'password' => Hash::make('password'), // mengamankan password
+        $dev = User::create([
+            'name' => 'Developer',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('admin123'),
+            'role' => 'admin',
+        ]);
+        $manager = User::create([
+            'name' => 'Manager',
+            'email' => 'manager@gmail.com',
+            'password' => Hash::make('manager123'),
+            'role' => 'manager',
         ]);
 
-        // 2. BUAT DATA PROYEK (Menggunakan ID dari user yang baru dibuat)
+        // 2. BUAT DATA PROYEK (Menggunakan ID dari user manager)
         $project = Project::create([
             'name' => 'CostumeRent Platform',
             'description' => 'Aplikasi persewaan kostum berbasis IoT dan otomasi pembayaran.',
             'status' => 'active',
-            'user_id' => $user->id, // <-- Mengarah ke ID User 1
+            'user_id' => $manager->id,
         ]);
+
+        // Hubungkan Developer dan Manager ke Proyek via tabel pivot
+        $project->members()->attach([$dev->id, $manager->id]);
 
         // 3. Array berisi 10 judul tugas berurutan untuk project CostumeRent
         $taskTitles = [
@@ -48,26 +58,20 @@ class DatabaseSeeder extends Seeder
         foreach ($taskTitles as $index => $title) {
             $task = Task::create([
                 'project_id' => $project->id,
-                'user_id' => $user->id,       // <-- Mengarah ke ID User 1
+                'user_id' => $manager->id,
+                'depends_on_task_id' => ($index === 0) ? null : $taskIds[$index - 1],
                 'title' => $title,
                 'description' => "Deskripsi pengerjaan untuk modul: {$title}",
                 'status' => ($index === 0) ? 'todo' : 'blocked',
                 'priority' => 'high',
                 'due_date' => now()->addDays($index + 2),
                 'estimate_hours' => 4,
-                'assigned_to' => $user->id    // <-- Ditugaskan ke ID User 1
+                'assigned_to' => $dev->id // Ditugaskan ke Developer
             ]);
 
             $taskIds[] = $task->id;
         }
 
-        // 5. Masukkan aturan utama ke tabel task_automations
-        TaskAutomation::create([
-            'project_id' => $project->id,
-            'trigger_status' => 'done',
-            'action_type' => 'unlock_sequential',
-            'action_value' => json_encode($taskIds),
-            'is_active' => true
-        ]);
+
     }
 }

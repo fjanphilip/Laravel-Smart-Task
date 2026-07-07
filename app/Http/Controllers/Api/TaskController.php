@@ -20,15 +20,17 @@ class TaskController extends Controller
         $this->taskService = $taskService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $task = $this->taskService->getAllTasks();
+        $projectId = $request->query('project_id');
+
+        $tasks = $this->taskService->getAllTasks($projectId);
 
         return response()->json([
             "status" => true,
             "message" => "Data berhasil ditampilkan",
-            "data" => $task
-        ], 201);
+            "data" => $tasks
+        ], 200);
     }
 
     public function store(StoreTaskRequest $request): JsonResponse
@@ -44,7 +46,11 @@ class TaskController extends Controller
 
     public function update(Task $task, UpdateTaskRequest $request): JsonResponse
     {
-        if ($task->user_id !== auth()->id()) {
+        $project = $task->project;
+        $isOwner = $project && $project->user_id === auth()->id();
+        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
             return response()->json([
                 "status" => false,
                 "message" => "Anda tidak memiliki akses untuk mengubah ini"
@@ -62,7 +68,11 @@ class TaskController extends Controller
 
     public function show(Task $task): JsonResponse
     {
-        if ($task->user_id !== auth()->id()) {
+        $project = $task->project;
+        $isOwner = $project && $project->user_id === auth()->id();
+        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
             return response()->json([
                 "status" => false,
                 "message" => "Anda tidak memiliki akses untuk melihat ini"
@@ -80,7 +90,11 @@ class TaskController extends Controller
 
     public function destroy(Task $task): JsonResponse
     {
-        if ($task->user_id !== auth()->id()) {
+        $project = $task->project;
+        $isOwner = $project && $project->user_id === auth()->id();
+        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
+
+        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
             return response()->json([
                 "status" => false,
                 "message" => "Anda tidak memiliki akses untuk menghapus ini"

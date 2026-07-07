@@ -14,9 +14,10 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('project_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('depends_on_task_id')->nullable()->constrained('tasks')->onDelete('set null');
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('status', ['todo', 'in_progress', 'review', 'done', 'blocked'])->default('todo');
+            $table->enum('status', ['todo', 'in_progress', 'review', 'done', 'blocked'])->default('todo')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('low');
             $table->timestamp('due_date');
             $table->integer('estimate_hours');

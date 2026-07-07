@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -69,4 +71,13 @@ class User extends Authenticatable
         return $this->hasMany(Task::class, 'user_id');
     }
 
+    public function taskLogs()
+    {
+        return $this->hasMany(TaskLog::class, 'user_id');
+    }
+
+    public function memberProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_user');
+    }
 }
