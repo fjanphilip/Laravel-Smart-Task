@@ -14,8 +14,10 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('password');
-            $table->enum('role', ['developer', 'manager', 'admin'])->default('developer');
+            $table->string('password')->nullable();
+            $table->string('provider')->nullable();
+            $table->string('provider_id')->nullable();
+            $table->enum('role', ['developer', 'manager', 'admin'])->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
