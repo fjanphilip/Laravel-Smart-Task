@@ -4,7 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 
 class SocialiteController extends Controller
 {
@@ -17,7 +22,10 @@ class SocialiteController extends Controller
             ], 422);
         }
 
-        return redirect(Socialite::driver($provider)->stateless()->redirect()->getTargetUrl());
+        /** @var AbstractProvider $driver */
+        $driver = Socialite::driver($provider);
+
+        return redirect($driver->stateless()->redirect()->getTargetUrl());
     }
 
     public function handleProviderCallback($provider)
@@ -29,7 +37,10 @@ class SocialiteController extends Controller
             ], 422);
         }
 
-        $socialiteUser = Socialite::driver($provider)->stateless()->user();
+        /** @var AbstractProvider $driver */
+        $driver = Socialite::driver($provider);
+
+        $socialiteUser = $driver->stateless()->user();
 
         $user = User::updateOrCreate([
             'email' => $socialiteUser->getEmail(),
