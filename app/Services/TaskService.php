@@ -6,6 +6,7 @@ use App\Models\Task;
 use App\Models\TaskAutomation;
 use App\Models\TaskLog;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 class TaskService
@@ -56,7 +57,7 @@ class TaskService
     {
 
         $oldStatus = $task->status;
-
+        $oldAssigned = $task->assigned_to;
 
 
         $task->update($data);
@@ -71,12 +72,31 @@ class TaskService
 
         }
 
+        if ($oldStatus !== 'review' && $task->status === 'review') {
+            $this->handleChangeAssigneToManager($task);
+        }
 
 
         return $task;
 
     }
 
+    public function handleChangeAssigneToManager(Task $task): void
+    {
+        $manager = User::where('role', 'manager')->first();
+
+        if (!$manager) {
+            throw new \Exception("Gagal mengalihkan tugas: User dengan role Manager tidak ditemukan.");
+        }
+
+        $task->updateOrFail(['assigned_to' => $manager->id]);
+
+        TaskLog::create([
+            'task_id' => $task->id,
+            'user_id' => $manager->id,
+            'action_taken' => 'review'
+        ]);
+    }
 
 
     public function handleUnlockNextTask(Task $task): void

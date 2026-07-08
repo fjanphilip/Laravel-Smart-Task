@@ -33,6 +33,8 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request): JsonResponse
     {
+        $this->authorize('create', Project::class);
+
         $projects = $this->projectService->createProject($request->validated());
 
         return response()->json([
@@ -44,15 +46,7 @@ class ProjectController extends Controller
 
     public function show(Project $project): JsonResponse
     {
-        $isOwner = $project->user_id === auth()->id();
-        $isMember = $project->members()->where('users.id', auth()->id())->exists();
-
-        if (!$isOwner && !$isMember) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki akses untuk melihat project ini'
-            ], 403);
-        }
+        $this->authorize('view', $project);
 
         return response()->json([
             'success' => true,
@@ -63,15 +57,7 @@ class ProjectController extends Controller
 
     public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
-        $isOwner = $project->user_id === auth()->id();
-        $isMember = $project->members()->where('users.id', auth()->id())->exists();
-
-        if (!$isOwner && !$isMember) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki akses untuk mengedit project ini'
-            ], 403);
-        }
+        $this->authorize('update', $project);
 
         $projects = $this->projectService->updateProject($project, $request->validated());
 
@@ -84,15 +70,7 @@ class ProjectController extends Controller
 
     public function destroy(Project $project): JsonResponse
     {
-        $isOwner = $project->user_id === auth()->id();
-        $isMember = $project->members()->where('users.id', auth()->id())->exists();
-
-        if (!$isOwner && !$isMember) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki akses untuk menghapus project ini'
-            ], 403);
-        }
+        $this->authorize('delete', $project);
 
         $projects = $this->projectService->deleteProject($project);
 

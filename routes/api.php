@@ -17,9 +17,14 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    
     Route::get('/users', [AuthController::class, 'users']);
     Route::put('/users/{user}', [AuthController::class, 'updateUser']);
-    Route::delete('/users/{user}', [AuthController::class, 'deleteUser']);
+    
+    // Hanya Admin yang bisa menghapus user
+    Route::middleware('role:admin')->group(function () {
+        Route::delete('/users/{user}', [AuthController::class, 'deleteUser']);
+    });
 
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('tasks', TaskController::class);

@@ -14,17 +14,29 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. BUAT DATA USER TERLEBIH DAHULU (Agar ID 1 tersedia untuk Project dan Task)
-        $dev = User::create([
-            'name' => 'Developer',
+        $admin = User::create([
+            'name' => 'Admin User',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('admin123'),
             'role' => 'admin',
         ]);
         $manager = User::create([
-            'name' => 'Manager',
+            'name' => 'Manager User',
             'email' => 'manager@gmail.com',
             'password' => Hash::make('manager123'),
             'role' => 'manager',
+        ]);
+        $dev = User::create([
+            'name' => 'Developer User',
+            'email' => 'developer@gmail.com',
+            'password' => Hash::make('developer123'),
+            'role' => 'developer',
+        ]);
+        $member = User::create([
+            'name' => 'Member User',
+            'email' => 'member@gmail.com',
+            'password' => Hash::make('member123'),
+            'role' => 'member',
         ]);
 
         // 2. BUAT DATA PROYEK (Menggunakan ID dari user manager)
@@ -35,8 +47,8 @@ class DatabaseSeeder extends Seeder
             'user_id' => $manager->id,
         ]);
 
-        // Hubungkan Developer dan Manager ke Proyek via tabel pivot
-        $project->members()->attach([$dev->id, $manager->id]);
+        // Hubungkan semua user ke Proyek via tabel pivot
+        $project->members()->attach([$admin->id, $manager->id, $dev->id, $member->id]);
 
         // 3. Array berisi 10 judul tugas berurutan untuk project CostumeRent
         $taskTitles = [
