@@ -12,6 +12,8 @@ services:
       - .:/var/www
     ports:
       - "8009:9000" # Memetakan port 8009 di VPS ke port 9000 PHP-FPM di dalam container
+    environment:
+      - REVERB_HOST=smart_task_reverb
     networks:
       - costume_shared_net
 
