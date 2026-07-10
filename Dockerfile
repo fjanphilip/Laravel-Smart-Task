@@ -21,4 +21,11 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Port standar PHP-FPM adalah 9000
 EXPOSE 9000
+
+# Tingkatkan batas pm.max_children di PHP-FPM agar mendukung banyak SSE stream secara bersamaan
+RUN echo "pm.max_children = 50" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.min_spare_servers = 5" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.max_spare_servers = 10" >> /usr/local/etc/php-fpm.d/zz-docker.conf
+
 CMD ["php-fpm"]

@@ -28,33 +28,48 @@ class NotificationController extends Controller
 
                 // Kirim komentar keepalive untuk menjaga koneksi dan memicu deteksi pemutusan koneksi klien
                 echo ": keepalive\n\n";
-                ob_flush();
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
                 flush();
 
-                $notifications = Notification::with('task')
-                    ->where('user_id', $userId)
-                    ->where('is_read', false)
-                    ->whereNotIn('id', $sentIds)
-                    ->get();
+                try {
+                    $notifications = Notification::with('task')
+                        ->where('user_id', $userId)
+                        ->where('is_read', false)
+                        ->whereNotIn('id', $sentIds)
+                        ->get();
 
-                if ($notifications->isNotEmpty()) {
-                    echo "data: " . json_encode($notifications) . "\n\n";
+                    if ($notifications->isNotEmpty()) {
+                        echo "data: " . json_encode($notifications) . "\n\n";
 
-                    ob_flush();
-                    flush();
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
+                        flush();
 
-                    // Masukkan ID yang sudah dikirim ke array pelacak
-                    $sentIds = array_merge($sentIds, $notifications->pluck('id')->toArray());
+                        // Masukkan ID yang sudah dikirim ke array pelacak
+                        $sentIds = array_merge($sentIds, $notifications->pluck('id')->toArray());
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("SSE Notification Stream Error: " . $e->getMessage());
+                    break;
                 }
 
                 sleep(3);
             }
         });
 
+        // Set Headers wajib untuk Server-Sent Events (SSE)
         $response->headers->set('Content-Type', 'text/event-stream');
         $response->headers->set('Cache-Control', 'no-cache');
         $response->headers->set('Connection', 'keep-alive');
         $response->headers->set('X-Accel-Buffering', 'no');
+
+        // Pastikan CORS Header terkirim untuk menghindari pemblokiran lintas-domain (Cross-Origin) oleh browser
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
 
         return $response;
     }
