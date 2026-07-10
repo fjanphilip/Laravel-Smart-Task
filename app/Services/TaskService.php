@@ -97,20 +97,23 @@ class TaskService
 
         // Tentukan role penerima notifikasi berdasarkan role pembuat perubahan
         $targetRoles = [];
-        if ($user->isDeveloper()) {
-            $targetRoles = ['manager', 'admin'];
+        if ($user->isDeveloper() || $user->isMember()) {
+            // Jika developer/member merubah data, beri tahu semua orang (Manager, Admin, dan Developer/Member lain)
+            $targetRoles = ['manager', 'admin', 'developer', 'member'];
         } elseif ($user->isManager()) {
-            $targetRoles = ['admin', 'developer'];
+            $targetRoles = ['admin', 'developer', 'member'];
         } elseif ($user->isAdmin()) {
-            $targetRoles = ['developer', 'manager'];
+            $targetRoles = ['developer', 'manager', 'member'];
         }
 
         if (empty($targetRoles)) {
             return;
         }
 
-        // Cari semua user yang memiliki role sasaran
-        $recipients = User::whereIn('role', $targetRoles)->get();
+        // Cari semua user dengan role sasaran, tetapi KECUALI user yang sedang login saat ini (pembuat perubahan)
+        $recipients = User::whereIn('role', $targetRoles)
+            ->where('id', '!=', $user->id)
+            ->get();
 
         $userName = $user->name;
         $taskTitle = $task->title;
