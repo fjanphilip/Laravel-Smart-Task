@@ -112,13 +112,16 @@ class TaskService
         $oldStatusFormatted = str_replace('_', ' ', $oldStatus);
 
         foreach ($recipients as $recipient) {
-            Notification::create([
+            $notification = Notification::create([
                 'user_id' => $recipient->id,
                 'task_id' => $task->id,
                 'title' => "Task Update: " . $statusFormatted,
                 'message' => "{$userName} mengubah status tugas '{$taskTitle}' dari '{$oldStatusFormatted}' menjadi '{$statusFormatted}'.",
                 'is_read' => false,
             ]);
+
+            // Dispatch broadcast event via Laravel Reverb
+            event(new \App\Events\NotificationSent($notification));
         }
     }
 

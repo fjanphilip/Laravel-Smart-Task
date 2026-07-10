@@ -8,70 +8,18 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NotificationController extends Controller
 {
-    public function stream(Request $request): StreamedResponse
+    public function index(Request $request)
     {
-        // Menonaktifkan batas waktu eksekusi agar stream tidak mati karena timeout
-        set_time_limit(0);
+        $notifications = Notification::with('task')
+            ->where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        $userId = $request->user()->id;
-
-        $response = new StreamedResponse(function () use ($userId) {
-            // Melacak ID notifikasi yang sudah dikirim selama koneksi aktif
-            // agar tidak terjadi loop pengiriman data berulang
-            $sentIds = [];
-
-            while (true) {
-                // Hentikan eksekusi jika browser/klien memutuskan koneksi (mencegah proses zombie)
-                if (connection_aborted()) {
-                    break;
-                }
-
-                // Kirim komentar keepalive untuk menjaga koneksi dan memicu deteksi pemutusan koneksi klien
-                echo ": keepalive\n\n";
-                if (ob_get_level() > 0) {
-                    ob_flush();
-                }
-                flush();
-
-                try {
-                    $notifications = Notification::with('task')
-                        ->where('user_id', $userId)
-                        ->where('is_read', false)
-                        ->whereNotIn('id', $sentIds)
-                        ->get();
-
-                    if ($notifications->isNotEmpty()) {
-                        echo "data: " . json_encode($notifications) . "\n\n";
-
-                        if (ob_get_level() > 0) {
-                            ob_flush();
-                        }
-                        flush();
-
-                        // Masukkan ID yang sudah dikirim ke array pelacak
-                        $sentIds = array_merge($sentIds, $notifications->pluck('id')->toArray());
-                    }
-                } catch (\Exception $e) {
-                    \Log::error("SSE Notification Stream Error: " . $e->getMessage());
-                    break;
-                }
-
-                sleep(3);
-            }
-        });
-
-        // Set Headers wajib untuk Server-Sent Events (SSE)
-        $response->headers->set('Content-Type', 'text/event-stream');
-        $response->headers->set('Cache-Control', 'no-cache');
-        $response->headers->set('Connection', 'keep-alive');
-        $response->headers->set('X-Accel-Buffering', 'no');
-
-        // Pastikan CORS Header terkirim untuk menghindari pemblokiran lintas-domain (Cross-Origin) oleh browser
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-
-        return $response;
+        return response()->json([
+            'success' => true,
+            'data' => $notifications
+        ]);
     }
 
     public function markAsRead(Notification $notification)
