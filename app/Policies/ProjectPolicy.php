@@ -22,6 +22,8 @@ class ProjectPolicy
     public function view(User $user, Project $project): bool
     {
         return $user->isAdmin() || 
+            $user->isManager() ||
+            $user->isDeveloper() ||
             $project->user_id === $user->id || 
             $project->members()->where('users.id', $user->id)->exists();
     }

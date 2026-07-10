@@ -23,6 +23,7 @@ class TaskPolicy
     {
         $project = $task->project;
         return $user->isAdmin() || 
+            $user->isDeveloper() ||
             ($project && ($project->user_id === $user->id || $project->members()->where('users.id', $user->id)->exists())) ||
             $task->user_id === $user->id ||
             $task->assigned_to === $user->id;
@@ -48,12 +49,8 @@ class TaskPolicy
             return true;
         }
 
-        // Developer bisa mengedit jika dia merupakan anggota proyek tersebut, tetapi HANYA boleh mengubah kolom 'status'
+        // Developer bisa mengedit tugas di proyek apa saja, tetapi HANYA boleh mengubah kolom 'status'
         if ($user->isDeveloper()) {
-            $isProjectMember = $project && $project->members()->where('users.id', $user->id)->exists();
-            if (!$isProjectMember) {
-                return false;
-            }
 
             $request = request();
             $fieldsToCheck = ['title', 'description', 'priority', 'due_date', 'estimate_hours', 'assigned_to', 'depends_on_task_id', 'project_id'];

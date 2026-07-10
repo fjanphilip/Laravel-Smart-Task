@@ -13,12 +13,20 @@ class ProjectService
      */
     public function getAllProjects(): Collection
     {
-        $userId = auth()->id();
+        $user = auth()->user();
+        if (!$user) {
+            return new Collection();
+        }
 
-        return Project::where('user_id', $userId)
-            ->orWhereHas('members', function ($query) use ($userId) {
-                $query->where('users.id', $userId);
-            })->get();
+        // Admin, Manager, dan Developer memiliki akses global ke seluruh project
+        if ($user->isAdmin() || $user->isManager() || $user->isDeveloper()) {
+            return Project::all();
+        }
+
+        // Member biasa hanya dapat melihat project di mana dia terdaftar sebagai anggota
+        return Project::whereHas('members', function ($query) use ($user) {
+            $query->where('users.id', $user->id);
+        })->get();
     }
 
     public function createProject(array $data): Project
