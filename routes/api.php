@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 
 Route::get('/', function (Request $request) {
     return $request->user();
@@ -19,6 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    
+    // Register route otorisasi channel private untuk Laravel Echo / Reverb
+    Broadcast::routes();
 
     Route::put('/notifications/read-all', [NotificationController::class, 'readAll']);
     Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
