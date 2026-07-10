@@ -29,9 +29,9 @@ jobs:
 
             # 3. Eksekusi deployment Docker Anda
             # Karena RAM mepet, kita hanya restart service web/app tanpa merusak DB jika tidak ada perubahan skema
-            docker compose up -d --build laravel_app
+            docker compose up -d --build smart_task_app
 
             # 4. Opsional: Jalankan optimasi Laravel di dalam container jika diperlukan
-            docker exec laravel_app php artisan migrate --force
-            docker exec laravel_app php artisan config:cache
-            docker exec laravel_app php artisan route:cache
+            docker exec smart_task_app php artisan migrate --force
+            docker exec smart_task_app php artisan config:cache
+            docker exec smart_task_app php artisan route:cache

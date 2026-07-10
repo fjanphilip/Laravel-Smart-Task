@@ -12,6 +12,8 @@ services:
       - .:/var/www
     ports:
       - "8009:8000" # Port 8009 agar tidak bentrok dengan CostumeRent (8008)
+    environment:
+      - PHP_CLI_SERVER_WORKERS=10
     networks:
       - costume_shared_net
 

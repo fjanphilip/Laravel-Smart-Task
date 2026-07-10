@@ -19,5 +19,8 @@ COPY . .
 # Install dependensi prod (opsional di lokal, wajib di VPS)
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
+# Set concurrent workers untuk php artisan serve agar mendukung multi-user SSE di produksi
+ENV PHP_CLI_SERVER_WORKERS=10
+
 EXPOSE 8000
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
