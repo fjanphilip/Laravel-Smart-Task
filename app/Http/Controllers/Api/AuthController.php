@@ -105,12 +105,30 @@ class AuthController extends Controller
 
     public function updateUser(Request $request, User $user): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6',
-            'role' => 'required|in:developer,manager,admin'
-        ]);
+        $isSelf = $user->id === auth()->id();
+        $isAdmin = auth()->user()->isAdmin();
+
+        if (!$isAdmin && !$isSelf) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak untuk memperbarui user ini.'
+            ], 403);
+        }
+
+        if ($isAdmin) {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'password' => 'nullable|string|min:6',
+                'role' => 'required|in:member,developer,manager,admin'
+            ]);
+        } else {
+            // Non-admin hanya bisa update name dan password
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'password' => 'nullable|string|min:6',
+            ]);
+        }
 
         if (!empty($validated['password'])) {
             $validated['password'] = bcrypt($validated['password']);

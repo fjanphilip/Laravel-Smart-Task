@@ -67,4 +67,9 @@ class Task extends Model
     {
         return $this->hasMany(Task::class, 'depends_on_task_id');
     }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
 }

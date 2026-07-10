@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Notification;
 use App\Models\Task;
 use App\Models\TaskAutomation;
 use App\Models\TaskLog;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 
 class TaskService
 {
@@ -56,19 +59,21 @@ class TaskService
     {
 
         $oldStatus = $task->status;
-
-
-
         $task->update($data);
-
         $task->refresh();
-
-
 
         if ($oldStatus !== 'done' && $task->status === 'done') {
 
             $this->handleUnlockNextTask($task);
 
+        }
+
+        if ($oldStatus !== 'review' && $task->status === 'review') {
+            $this->handleChangeAssigneToManager($task);
+        }
+
+        if ($oldStatus !== $task->status && in_array($task->status, ['review', 'done'])) {
+            $this->handleSendNotification($task, $oldStatus);
         }
 
 
@@ -77,6 +82,62 @@ class TaskService
 
     }
 
+    public function handleSendNotification(Task $task, string $oldStatus)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return;
+        }
+
+        // Tentukan role penerima notifikasi berdasarkan role pembuat perubahan
+        $targetRoles = [];
+        if ($user->isDeveloper()) {
+            $targetRoles = ['manager', 'admin'];
+        } elseif ($user->isManager()) {
+            $targetRoles = ['admin', 'developer'];
+        } elseif ($user->isAdmin()) {
+            $targetRoles = ['developer', 'manager'];
+        }
+
+        if (empty($targetRoles)) {
+            return;
+        }
+
+        // Cari semua user yang memiliki role sasaran
+        $recipients = User::whereIn('role', $targetRoles)->get();
+
+        $userName = $user->name;
+        $taskTitle = $task->title;
+        $statusFormatted = ucfirst(str_replace('_', ' ', $task->status));
+        $oldStatusFormatted = str_replace('_', ' ', $oldStatus);
+
+        foreach ($recipients as $recipient) {
+            Notification::create([
+                'user_id' => $recipient->id,
+                'task_id' => $task->id,
+                'title' => "Task Update: " . $statusFormatted,
+                'message' => "{$userName} mengubah status tugas '{$taskTitle}' dari '{$oldStatusFormatted}' menjadi '{$statusFormatted}'.",
+                'is_read' => false,
+            ]);
+        }
+    }
+
+    public function handleChangeAssigneToManager(Task $task): void
+    {
+        $manager = User::where('role', 'manager')->first();
+
+        if (!$manager) {
+            throw new \Exception("Gagal mengalihkan tugas: User dengan role Manager tidak ditemukan.");
+        }
+
+        $task->updateOrFail(['assigned_to' => $manager->id]);
+
+        TaskLog::create([
+            'task_id' => $task->id,
+            'user_id' => $manager->id,
+            'action_taken' => 'review'
+        ]);
+    }
 
 
     public function handleUnlockNextTask(Task $task): void

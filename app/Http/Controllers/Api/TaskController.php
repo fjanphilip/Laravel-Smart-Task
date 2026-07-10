@@ -35,6 +35,8 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request): JsonResponse
     {
+        $this->authorize('create', Task::class);
+
         $task = $this->taskService->createTask($request->validated());
 
         return response()->json([
@@ -46,16 +48,7 @@ class TaskController extends Controller
 
     public function update(Task $task, UpdateTaskRequest $request): JsonResponse
     {
-        $project = $task->project;
-        $isOwner = $project && $project->user_id === auth()->id();
-        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
-
-        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
-            return response()->json([
-                "status" => false,
-                "message" => "Anda tidak memiliki akses untuk mengubah ini"
-            ], 403);
-        }
+        $this->authorize('update', $task);
 
         $task = $this->taskService->updateTask($task, $request->validated());
 
@@ -68,16 +61,7 @@ class TaskController extends Controller
 
     public function show(Task $task): JsonResponse
     {
-        $project = $task->project;
-        $isOwner = $project && $project->user_id === auth()->id();
-        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
-
-        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
-            return response()->json([
-                "status" => false,
-                "message" => "Anda tidak memiliki akses untuk melihat ini"
-            ], 403);
-        }
+        $this->authorize('view', $task);
 
         $task = $this->taskService->getTaskById($task->id);
 
@@ -90,16 +74,7 @@ class TaskController extends Controller
 
     public function destroy(Task $task): JsonResponse
     {
-        $project = $task->project;
-        $isOwner = $project && $project->user_id === auth()->id();
-        $isMember = $project && $project->members()->where('users.id', auth()->id())->exists();
-
-        if (!$isOwner && !$isMember && $task->user_id !== auth()->id()) {
-            return response()->json([
-                "status" => false,
-                "message" => "Anda tidak memiliki akses untuk menghapus ini"
-            ], 403);
-        }
+        $this->authorize('delete', $task);
 
         $task = $this->taskService->deleteTask($task);
 

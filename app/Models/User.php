@@ -82,4 +82,24 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Project::class, 'project_user');
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
+    public function isDeveloper(): bool
+    {
+        return $this->role === 'developer';
+    }
+
+    public function isMember(): bool
+    {
+        return $this->role === 'member';
+    }
 }

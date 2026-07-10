@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onUpdate('cascade')->nullOnDelete();
             $table->foreignId('depends_on_task_id')->nullable()->constrained('tasks')->onDelete('set null');
             $table->string('title');
             $table->text('description')->nullable();
@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('low');
             $table->timestamp('due_date');
             $table->integer('estimate_hours');
-            $table->foreignId('assigned_to')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('assigned_to')->nullable()->constrained('users')->onUpdate('cascade')->nullOnDelete();
             $table->timestamps();
         });
     }
