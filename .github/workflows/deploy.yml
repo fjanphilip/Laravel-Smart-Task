@@ -1,0 +1,37 @@
+name: Deploy to Lightsail VPS
+
+on:
+  push:
+    branches:
+      - main # Ganti dengan 'master' jika branch utama Anda bernama master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Executing Remote SSH Commands via Passwordless SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # 1. Masuk ke direktori project Anda di VPS (Sesuaikan path ini!)
+            cd /path/to/your/project-folder
+
+            # 2. Tarik code terbaru dari GitHub
+            git pull origin main
+
+            # 3. Eksekusi deployment Docker Anda
+            # Karena RAM mepet, kita hanya restart service web/app tanpa merusak DB jika tidak ada perubahan skema
+            docker compose up -d --build laravel_app
+
+            # 4. Opsional: Jalankan optimasi Laravel di dalam container jika diperlukan
+            docker exec laravel_app php artisan migrate --force
+            docker exec laravel_app php artisan config:cache
+            docker exec laravel_app php artisan route:cache
