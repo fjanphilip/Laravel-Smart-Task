@@ -25,6 +25,8 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
+            // Revokasi/Hapus seluruh token sesi lama untuk memaksa auto-logout di perangkat lain
+            $user->tokens()->delete();
 
             $token = $user->createToken('auth_token')->plainTextToken;
 

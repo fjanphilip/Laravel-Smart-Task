@@ -15,16 +15,22 @@ class TaskService
 {
     public function getAllTasks(?int $projectId = null): Collection
     {
-        $userId = auth()->id();
+        $user = auth()->user();
+        if (!$user) {
+            return new Collection();
+        }
 
-        // Ambil semua ID proyek di mana pengguna adalah pembuat ATAU anggota
-        $accessibleProjectIds = Project::where('user_id', $userId)
-            ->orWhereHas('members', function ($q) use ($userId) {
-                $q->where('users.id', $userId);
-            })
-            ->pluck('id');
+        // Admin, Manager, dan Developer memiliki akses global ke seluruh task
+        if ($user->isAdmin() || $user->isManager() || $user->isDeveloper()) {
+            $query = Task::query();
+        } else {
+            // Member biasa hanya dapat melihat task dari project di mana dia terdaftar sebagai anggota
+            $accessibleProjectIds = Project::whereHas('members', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            })->pluck('id');
 
-        $query = Task::whereIn('project_id', $accessibleProjectIds);
+            $query = Task::whereIn('project_id', $accessibleProjectIds);
+        }
 
         // Jika React mengirimkan project_id, filter datanya berdasarkan project tersebut
         if ($projectId) {
