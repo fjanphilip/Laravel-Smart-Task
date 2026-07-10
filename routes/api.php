@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,12 +16,16 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications/stream', [NotificationController::class, 'stream']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
-    
+
+    Route::put('/notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+
     Route::get('/users', [AuthController::class, 'users']);
     Route::put('/users/{user}', [AuthController::class, 'updateUser']);
-    
+
     // Hanya Admin yang bisa menghapus user
     Route::middleware('role:admin')->group(function () {
         Route::delete('/users/{user}', [AuthController::class, 'deleteUser']);
