@@ -16,11 +16,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 COPY . .
 
-# Install dependensi prod (opsional di lokal, wajib di VPS)
+# Install dependensi prod
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Set concurrent workers untuk php artisan serve agar mendukung multi-user SSE di produksi
-ENV PHP_CLI_SERVER_WORKERS=10
-
-EXPOSE 8000
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Port standar PHP-FPM adalah 9000
+EXPOSE 9000
+CMD ["php-fpm"]

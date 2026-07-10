@@ -11,13 +11,11 @@ services:
     volumes:
       - .:/var/www
     ports:
-      - "8009:8000" # Port 8009 agar tidak bentrok dengan CostumeRent (8008)
-    environment:
-      - PHP_CLI_SERVER_WORKERS=10
+      - "8009:9000" # Memetakan port 8009 di VPS ke port 9000 PHP-FPM di dalam container
     networks:
       - costume_shared_net
 
 networks:
   costume_shared_net:
     external: true
-    name: shared-network # Menghubungkan ke network existing di VPS
+    name: shared-network
